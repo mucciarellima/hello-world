@@ -1,0 +1,206 @@
+<title>50/50 Live Prize</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&display=swap">
+<style>
+/* Layout: one screen. Wide = TV board (prize dominates), narrow = phone stack. Editors get a small Edit control and a bottom sheet. */
+:root {
+  --bg: #0E1116;
+  --surface: #171C24;
+  --line: #2A313B;
+  --fg: #F4EFE6;
+  --soft: #C9CFD8;
+  --muted: #AEB6C2;
+  --accent: #F2C14E;
+  --on-accent: #0E1116;
+  --warn: #FFB454;
+  --bad: #FF8A80;
+  --font-display: 'Barlow Condensed', 'Arial Narrow', sans-serif;
+  --font-body: 'Barlow', system-ui, sans-serif;
+  color-scheme: dark;
+}
+html, body { height: 100%; }
+body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: 16px; }
+.page { min-height: 100%; box-sizing: border-box; display: flex; flex-direction: column; justify-content: space-between; gap: 24px; padding-block: clamp(20px, 4vh, 52px); padding-inline: clamp(16px, 5vw, 72px); }
+header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 6px 24px; }
+.brand { font-family: var(--font-display); font-weight: 700; font-size: clamp(26px, 3.4vw, 44px); letter-spacing: 0.08em; color: var(--accent); }
+.sub { font-size: clamp(15px, 2.2vw, 30px); font-weight: 500; color: var(--soft); }
+main { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 6px; min-width: 0; }
+.label { font-size: clamp(15px, 2.4vw, 32px); font-weight: 600; letter-spacing: 0.26em; color: var(--muted); }
+.amount { font-family: var(--font-display); font-weight: 700; font-size: min(27vw, 38vh); line-height: 0.92; color: var(--accent); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.amount.empty { color: var(--line); }
+.updated { font-size: clamp(16px, 2.4vw, 30px); font-weight: 500; color: var(--soft); }
+.warn { font-size: clamp(15px, 2vw, 26px); font-weight: 600; color: var(--warn); }
+footer { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 20px; border-top: 2px solid var(--line); padding-top: clamp(14px, 2.4vh, 26px); }
+.facts { display: flex; flex-wrap: wrap; gap: 16px clamp(28px, 5vw, 72px); min-width: 0; }
+.fact { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.k { font-size: clamp(13px, 1.6vw, 22px); font-weight: 600; letter-spacing: 0.2em; color: var(--muted); }
+.v { font-family: var(--font-display); font-weight: 700; font-size: clamp(32px, 4.6vw, 60px); line-height: 1; overflow-wrap: anywhere; }
+.note { font-size: 15px; color: var(--soft); }
+button, input { font: inherit; }
+.edit-btn { min-height: 44px; padding: 0 18px; border: 1px solid var(--line); border-radius: 10px; background: transparent; color: var(--soft); cursor: pointer; }
+.edit-btn:hover { border-color: var(--muted); }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.sheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 10; box-sizing: border-box; background: var(--surface); border-top: 2px solid var(--line); padding: 20px clamp(16px, 5vw, 72px) calc(20px + env(safe-area-inset-bottom, 0px)); display: flex; flex-direction: column; gap: 16px; max-height: 100%; overflow-y: auto; }
+.fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; }
+.field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.field label { font-size: 14px; font-weight: 600; letter-spacing: 0.14em; color: var(--muted); }
+.field input { box-sizing: border-box; width: 100%; min-height: 56px; padding: 0 14px; background: var(--bg); color: var(--fg); border: 2px solid var(--line); border-radius: 12px; font-size: 22px; }
+.actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.save { min-height: 52px; padding: 0 28px; border: 0; border-radius: 12px; background: var(--accent); color: var(--on-accent); font-weight: 600; font-size: 20px; cursor: pointer; }
+.save[disabled] { opacity: 0.6; cursor: default; }
+.cancel { min-height: 52px; padding: 0 20px; border: 1px solid var(--line); border-radius: 12px; background: transparent; color: var(--soft); cursor: pointer; }
+.status { font-size: 16px; color: var(--soft); }
+.status.bad { color: var(--bad); }
+/* #phone: hold the layout to a phone-width column so it can be previewed on a computer */
+html.phone .page { max-width: 430px; margin-inline: auto; }
+html.phone .brand { font-size: 30px; }
+html.phone .sub { font-size: 16px; }
+html.phone .label { font-size: 18px; }
+html.phone .amount { font-size: min(110px, 38vh); }
+html.phone .updated { font-size: 18px; }
+html.phone .warn { font-size: 16px; }
+html.phone .k { font-size: 15px; }
+html.phone .v { font-size: 40px; }
+</style>
+
+<div class="page">
+  <header>
+    <div class="brand">50/50 RAFFLE</div>
+    <div class="sub">Tickets on sale now</div>
+  </header>
+
+  <main aria-live="polite">
+    <div class="label">CURRENT PRIZE</div>
+    <div class="amount empty" id="amount">&mdash;</div>
+    <div class="updated" id="updated">Waiting for the first update</div>
+    <div class="warn" id="stale" hidden>Prize may be out of date</div>
+  </main>
+
+  <footer>
+    <div class="facts">
+      <div class="fact"><div class="k">TICKET PRICE</div><div class="v" id="price">&mdash;</div></div>
+      <div class="fact"><div class="k">DRAW TIME</div><div class="v" id="time">&mdash;</div></div>
+    </div>
+    <div>
+      <div class="note" id="live-note" hidden></div>
+      <div class="note" id="admin-note" hidden>Editing needs edit access to this page.</div>
+      <button type="button" class="edit-btn" id="edit-btn" hidden>Edit</button>
+    </div>
+  </footer>
+</div>
+
+<form class="sheet" id="sheet" hidden autocomplete="off">
+  <div class="fields">
+    <div class="field">
+      <label for="f-amount">CURRENT PRIZE ($)</label>
+      <input id="f-amount" type="text" inputmode="decimal" placeholder="1,240">
+    </div>
+    <div class="field">
+      <label for="f-price">TICKET PRICE</label>
+      <input id="f-price" type="text" maxlength="40" placeholder="e.g. $5 each">
+    </div>
+    <div class="field">
+      <label for="f-time">DRAW TIME</label>
+      <input id="f-time" type="text" maxlength="40" placeholder="e.g. 9:30 pm">
+    </div>
+  </div>
+  <div class="actions">
+    <button type="submit" class="save" id="save">Update prize</button>
+    <button type="button" class="cancel" id="cancel">Cancel</button>
+    <span class="status" id="status" role="status"></span>
+  </div>
+</form>
+
+<script>
+(function () {
+  var STALE_MS = 45 * 60 * 1000;
+  var current = null;
+  var docRef = null;
+
+  function $(id) { return document.getElementById(id); }
+  function use(name) { return window.claude && window.claude.use ? window.claude.use(name) : Promise.resolve(null); }
+  function money(n) {
+    return new Intl.NumberFormat('en-CA', { style: 'currency', currency: 'CAD', minimumFractionDigits: n % 1 ? 2 : 0, maximumFractionDigits: 2 }).format(n);
+  }
+  function clock(ms) { return new Date(ms).toLocaleTimeString('en-CA', { hour: 'numeric', minute: '2-digit' }); }
+  function note(text) { var n = $('live-note'); n.textContent = text; n.hidden = !text; }
+
+  function render() {
+    var ok = current && typeof current.amount === 'number';
+    $('amount').textContent = ok ? money(current.amount) : '—';
+    $('amount').classList.toggle('empty', !ok);
+    $('updated').textContent = ok && current.updatedAt ? 'Updated ' + clock(current.updatedAt) : 'Waiting for the first update';
+    $('price').textContent = (current && current.ticketPrice) || '—';
+    $('time').textContent = (current && current.drawTime) || '—';
+    $('stale').hidden = !(ok && current.updatedAt && Date.now() - current.updatedAt > STALE_MS);
+  }
+  setInterval(render, 30000);
+  render();
+
+  use('db').then(function (db) {
+    if (!db) { note('Live updates are not available in this view.'); return; }
+    docRef = db.doc('raffle/current');
+    docRef.onSnapshot(function (snap) {
+      current = snap.exists ? snap.data() : null;
+      render();
+      note('');
+    }, function () { note('Live updates stopped. Reload the page.'); });
+  });
+
+  var canEdit = false;
+  function route() {
+    var h = (window.location.hash || '').replace('#', '').toLowerCase();
+    document.documentElement.classList.toggle('phone', h === 'phone');
+    $('edit-btn').hidden = !(canEdit && h !== 'tv');
+    $('admin-note').hidden = !(h === 'admin' && !canEdit);
+    if (h === 'tv' && !sheet.hidden) sheet.hidden = true;
+    if (h === 'admin' && canEdit && sheet.hidden) openSheet();
+  }
+
+  use('user').then(function (user) {
+    if (!user) return;
+    user.canEdit().then(function (can) { canEdit = !!can; route(); });
+  });
+
+  var sheet = $('sheet');
+  function setStatus(text, bad) { var s = $('status'); s.textContent = text; s.classList.toggle('bad', !!bad); }
+  function openSheet() {
+    $('f-amount').value = current && typeof current.amount === 'number' ? String(current.amount) : '';
+    $('f-price').value = (current && current.ticketPrice) || '';
+    $('f-time').value = (current && current.drawTime) || '';
+    setStatus('');
+    sheet.hidden = false;
+    $('f-amount').focus();
+  }
+  function closeSheet() { sheet.hidden = true; $('edit-btn').focus(); }
+  $('edit-btn').addEventListener('click', openSheet);
+  $('cancel').addEventListener('click', closeSheet);
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !sheet.hidden) closeSheet(); });
+
+  sheet.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var n = parseFloat($('f-amount').value.replace(/[^0-9.]/g, ''));
+    if (!isFinite(n) || n < 0 || n > 10000000) { setStatus('Enter the prize as a number, like 1240 or 1,240.50.', true); return; }
+    if (!docRef) { setStatus('Saving is not available in this view.', true); return; }
+    var body = {
+      amount: Math.round(n * 100) / 100,
+      ticketPrice: $('f-price').value.trim().slice(0, 40),
+      drawTime: $('f-time').value.trim().slice(0, 40),
+      updatedAt: Date.now()
+    };
+    $('save').disabled = true;
+    setStatus('Saving…');
+    docRef.set(body).then(function () {
+      $('save').disabled = false;
+      closeSheet();
+    }, function (err) {
+      $('save').disabled = false;
+      setStatus('Could not save (' + ((err && err.code) || 'error') + '). Try again.', true);
+    });
+  });
+
+  route();
+  window.addEventListener('hashchange', route);
+})();
+</script>
